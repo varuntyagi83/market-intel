@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+let _client: Anthropic | null = null;
+const getClient = () => _client ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export interface AdvisoryVerdict {
   symbol: string;
@@ -62,7 +63,7 @@ Return ONLY valid JSON (no markdown fences, no extra text) — one verdict per s
   }
 
   try {
-    const msg = await client.messages.create({
+    const msg = await getClient().messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 2048,
       system: `Elite portfolio manager and equity research analyst. Return ONLY valid JSON — no markdown, no code blocks, no extra text before or after the JSON object.`,

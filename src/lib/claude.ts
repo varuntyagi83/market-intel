@@ -2,7 +2,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { AnalysisMode, MarketKey } from "./types";
 import { MARKETS } from "./markets";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+let _client: Anthropic | null = null;
+function getClient() {
+  if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return _client;
+}
 
 export function buildAnalysisPrompt(
   market: MarketKey,
@@ -44,7 +48,7 @@ export async function createAnalysisStream(
     ? [{ type: "web_search_20250305" as any, name: "web_search" } as any]
     : [];
 
-  const stream = await client.messages.stream({
+  const stream = await getClient().messages.stream({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
     system,

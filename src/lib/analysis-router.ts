@@ -7,7 +7,8 @@ import { buildAnalysisPrompt, createAnalysisStream } from "./claude";
 import { createOpenAIStream, getOpenAIAnalysis } from "./openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+let _anthropic: Anthropic | null = null;
+const getAnthropic = () => _anthropic ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // Collect full text from a Claude stream (for consensus)
 async function collectClaudeText(
@@ -15,7 +16,7 @@ async function collectClaudeText(
   system: string,
   useSearch: boolean
 ): Promise<string> {
-  const stream = await anthropic.messages.stream({
+  const stream = await getAnthropic().messages.stream({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
     system,

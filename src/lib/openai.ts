@@ -5,7 +5,12 @@
 import OpenAI from "openai";
 import { SentimentScore, NewsSentimentResponse } from "./types";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Lazy singleton — avoids crashing at build time when env vars are absent
+let _client: OpenAI | null = null;
+function getClient() {
+  if (!_client) _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return _client;
+}
 
 // ── Sentiment scoring via GPT-4o-mini (fast, cheap) ──────────
 
@@ -22,7 +27,7 @@ export async function scoreSentiment(
     .map((h, i) => `${i + 1}. ${h}`)
     .join("\n");
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
       {
@@ -68,7 +73,7 @@ export async function createOpenAIStream(
   prompt: string,
   system: string
 ): Promise<ReadableStream> {
-  const stream = await client.chat.completions.create({
+  const stream = await getClient().chat.completions.create({
     model: "gpt-4o",
     stream: true,
     messages: [
@@ -109,7 +114,7 @@ export async function getOpenAIAnalysis(
   prompt: string,
   system: string
 ): Promise<string> {
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: "gpt-4o",
     messages: [
       { role: "system", content: system },
