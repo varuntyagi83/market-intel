@@ -10,17 +10,18 @@ import {
   BollingerData,
   SentimentScore,
   NewsSentimentResponse,
+  StockQuote,
 } from "./types";
 
 const BASE = "https://www.alphavantage.co/query";
 const KEY = process.env.ALPHA_VANTAGE_KEY || "";
 
-async function avFetch(params: Record<string, string>) {
+async function avFetch(params: Record<string, string>, revalidate = 300) {
   const url = new URL(BASE);
   Object.entries({ ...params, apikey: KEY }).forEach(([k, v]) =>
     url.searchParams.set(k, v)
   );
-  const res = await fetch(url.toString(), { next: { revalidate: 300 } });
+  const res = await fetch(url.toString(), { next: { revalidate } });
   if (!res.ok) throw new Error(`Alpha Vantage ${res.status}`);
   const json = await res.json();
   if (json["Note"] || json["Information"]) {
@@ -166,6 +167,43 @@ export async function getAllTechnicals(
     bollinger: bollingerR.status === "fulfilled" ? bollingerR.value : undefined,
     fetchedAt: Date.now(),
   };
+}
+
+// ── BSE (Indian Exchange) Quotes ──────────────────────────────
+// Alpha Vantage GLOBAL_QUOTE supports BSE:TICKER format.
+// Prices are returned in INR — no FX conversion needed.
+// Cached for 30 min to protect the 25 calls/day free limit.
+
+export async function getBSEQuote(bseTicker: string): Promise<StockQuote | null> {
+  try {
+    const data = await avFetch({ function: "GLOBAL_QUOTE", symbol: bseTicker }, 1800);
+    const q = data["Global Quote"] as Record<string, string> | undefined;
+    if (!q || !q["05. price"] || q["05. price"] === "0") return null;
+
+    const pctRaw = (q["10. change percent"] ?? "0%").replace("%", "");
+    return {
+      symbol: bseTicker.replace(/^BSE:/, ""),  // Display as RELIANCE, not BSE:RELIANCE
+      price:     parseFloat(q["05. price"]),
+      change:    parseFloat(q["09. change"] ?? "0"),
+      changePct: parseFloat(pctRaw),
+      high:      parseFloat(q["03. high"] ?? "0"),
+      low:       parseFloat(q["04. low"] ?? "0"),
+      open:      parseFloat(q["02. open"] ?? "0"),
+      prevClose: parseFloat(q["08. previous close"] ?? "0"),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getBSEQuotes(bseTickers: string[]): Promise<StockQuote[]> {
+  // Sequential to avoid spiking the rate limit
+  const results: StockQuote[] = [];
+  for (const ticker of bseTickers) {
+    const q = await getBSEQuote(ticker);
+    if (q) results.push(q);
+  }
+  return results;
 }
 
 // ── News Sentiment ────────────────────────────────────────────

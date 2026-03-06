@@ -32,7 +32,7 @@ interface Props {
 const QUICK_PICKS: Record<MarketKey, string[]> = {
   US:     ["AAPL", "NVDA", "MSFT", "GOOGL", "TSLA"],
   EU:     ["ASML", "NVO", "SAP", "AZN", "ARM"],
-  INDIA:  ["INFY", "HDB", "IBN", "WIT", "TTM"],
+  INDIA:  ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK"],
   CRYPTO: ["BTC", "ETH", "SOL", "XRP", "BNB"],
 };
 

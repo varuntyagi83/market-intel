@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMultipleQuotes } from "@/lib/finnhub";
 import { getCryptoPrices } from "@/lib/coingecko";
+import { getBSEQuotes } from "@/lib/alpha-vantage";
 import { MARKETS } from "@/lib/markets";
 import { MarketKey, StockQuote } from "@/lib/types";
 import { getUsdRates, MARKET_CURRENCY } from "@/lib/fx";
@@ -31,9 +32,16 @@ export async function GET(req: NextRequest) {
     }
 
     const allTickers = [...MARKETS[market].indices, ...MARKETS[market].tickers];
+
+    // India: all tickers are BSE-prefixed → use Alpha Vantage (prices already in ₹)
+    if (allTickers.every((t) => t.startsWith("BSE:"))) {
+      const data = await getBSEQuotes(allTickers);
+      return NextResponse.json({ type: "stock", data });
+    }
+
+    // Other markets: Finnhub (returns USD) → convert to local currency if needed
     let data = await getMultipleQuotes(allTickers);
 
-    // Convert USD prices to local market currency
     const targetCurrency = MARKET_CURRENCY[market];
     if (targetCurrency) {
       const rates = await getUsdRates();

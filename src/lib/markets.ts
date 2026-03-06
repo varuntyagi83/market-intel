@@ -22,11 +22,17 @@ export const MARKETS: Record<MarketKey, MarketDef> = {
   INDIA: {
     label: "India",
     icon: "🇮🇳",
-    // Indian companies listed as ADRs on NYSE/NASDAQ (Finnhub free tier compatible)
-    // INFY=Infosys, WIT=Wipro, HDB=HDFC Bank, IBN=ICICI Bank,
-    // TTM=Tata Motors, RDY=Dr.Reddy's, VEDL=Vedanta, AUKF? → use BSAC? No
-    tickers: ["INFY", "HDB", "IBN", "WIT", "TTM", "RDY", "VEDL", "MMYT"],
-    indices: ["INDA", "INDY"],
+    // BSE-listed stocks via Alpha Vantage (prices in ₹ — no conversion needed)
+    // Prefix BSE: signals the quotes route to use Alpha Vantage instead of Finnhub
+    tickers: [
+      "BSE:RELIANCE",    // Reliance Industries
+      "BSE:TCS",         // Tata Consultancy Services
+      "BSE:HDFCBANK",    // HDFC Bank
+      "BSE:INFY",        // Infosys
+      "BSE:ICICIBANK",   // ICICI Bank
+      "BSE:WIPRO",       // Wipro
+    ],
+    indices: [], // INDA/INDY are USD ETFs — not meaningful alongside ₹ BSE quotes
     finnhubCategory: "general",
   },
   CRYPTO: {
