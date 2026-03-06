@@ -197,10 +197,11 @@ export async function getBSEQuote(bseTicker: string): Promise<StockQuote | null>
 }
 
 export async function getBSEQuotes(bseTickers: string[]): Promise<StockQuote[]> {
-  // Sequential to avoid spiking the rate limit
+  // Sequential with 1.2s gap — Alpha Vantage free tier allows 1 req/sec burst
   const results: StockQuote[] = [];
-  for (const ticker of bseTickers) {
-    const q = await getBSEQuote(ticker);
+  for (let i = 0; i < bseTickers.length; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 1200));
+    const q = await getBSEQuote(bseTickers[i]);
     if (q) results.push(q);
   }
   return results;

@@ -29,8 +29,6 @@ export const MARKETS: Record<MarketKey, MarketDef> = {
       "TCS.BSE",         // Tata Consultancy Services
       "HDFCBANK.BSE",    // HDFC Bank
       "INFY.BSE",        // Infosys
-      "ICICIBANK.BSE",   // ICICI Bank
-      "WIPRO.BSE",       // Wipro
     ],
     indices: [], // INDA/INDY are USD ETFs — not meaningful alongside ₹ BSE quotes
     finnhubCategory: "general",

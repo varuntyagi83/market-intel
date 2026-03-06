@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+
+// Extend Vercel function timeout for BSE sequential fetching (4 tickers × 1.2s)
+export const maxDuration = 15;
 import { getMultipleQuotes } from "@/lib/finnhub";
 import { getCryptoPrices } from "@/lib/coingecko";
 import { getBSEQuotes } from "@/lib/alpha-vantage";
