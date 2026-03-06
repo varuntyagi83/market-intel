@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
 
     const allTickers = [...MARKETS[market].indices, ...MARKETS[market].tickers];
 
-    // India: all tickers are BSE-prefixed → use Alpha Vantage (prices already in ₹)
-    if (allTickers.every((t) => t.startsWith("BSE:"))) {
+    // India: all tickers have .BSE suffix → use Alpha Vantage (prices already in ₹)
+    if (allTickers.every((t) => t.endsWith(".BSE"))) {
       const data = await getBSEQuotes(allTickers);
       return NextResponse.json({ type: "stock", data });
     }

@@ -25,12 +25,12 @@ export const MARKETS: Record<MarketKey, MarketDef> = {
     // BSE-listed stocks via Alpha Vantage (prices in ₹ — no conversion needed)
     // Prefix BSE: signals the quotes route to use Alpha Vantage instead of Finnhub
     tickers: [
-      "BSE:RELIANCE",    // Reliance Industries
-      "BSE:TCS",         // Tata Consultancy Services
-      "BSE:HDFCBANK",    // HDFC Bank
-      "BSE:INFY",        // Infosys
-      "BSE:ICICIBANK",   // ICICI Bank
-      "BSE:WIPRO",       // Wipro
+      "RELIANCE.BSE",    // Reliance Industries
+      "TCS.BSE",         // Tata Consultancy Services
+      "HDFCBANK.BSE",    // HDFC Bank
+      "INFY.BSE",        // Infosys
+      "ICICIBANK.BSE",   // ICICI Bank
+      "WIPRO.BSE",       // Wipro
     ],
     indices: [], // INDA/INDY are USD ETFs — not meaningful alongside ₹ BSE quotes
     finnhubCategory: "general",

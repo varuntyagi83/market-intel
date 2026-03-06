@@ -182,7 +182,7 @@ export async function getBSEQuote(bseTicker: string): Promise<StockQuote | null>
 
     const pctRaw = (q["10. change percent"] ?? "0%").replace("%", "");
     return {
-      symbol: bseTicker.replace(/^BSE:/, ""),  // Display as RELIANCE, not BSE:RELIANCE
+      symbol: bseTicker.replace(/\.BSE$/, ""),  // Display as RELIANCE, not RELIANCE.BSE
       price:     parseFloat(q["05. price"]),
       change:    parseFloat(q["09. change"] ?? "0"),
       changePct: parseFloat(pctRaw),
