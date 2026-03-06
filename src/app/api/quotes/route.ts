@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Extend Vercel function timeout for BSE sequential fetching (4 tickers × 1.2s)
-export const maxDuration = 15;
 import { getMultipleQuotes } from "@/lib/finnhub";
 import { getCryptoPrices } from "@/lib/coingecko";
-import { getBSEQuotes } from "@/lib/alpha-vantage";
+import { getNSEQuotes } from "@/lib/nse";
 import { MARKETS } from "@/lib/markets";
 import { MarketKey, StockQuote } from "@/lib/types";
 import { getUsdRates, MARKET_CURRENCY } from "@/lib/fx";
@@ -36,9 +33,9 @@ export async function GET(req: NextRequest) {
 
     const allTickers = [...MARKETS[market].indices, ...MARKETS[market].tickers];
 
-    // India: all tickers have .BSE suffix → use Alpha Vantage (prices already in ₹)
-    if (allTickers.every((t) => t.endsWith(".BSE"))) {
-      const data = await getBSEQuotes(allTickers);
+    // India: use NSE India official API (real-time ₹ prices, parallel, no key needed)
+    if (market === "INDIA") {
+      const data = await getNSEQuotes(allTickers);
       return NextResponse.json({ type: "stock", data });
     }
 

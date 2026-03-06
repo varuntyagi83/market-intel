@@ -22,15 +22,19 @@ export const MARKETS: Record<MarketKey, MarketDef> = {
   INDIA: {
     label: "India",
     icon: "🇮🇳",
-    // BSE-listed stocks via Alpha Vantage (prices in ₹ — no conversion needed)
-    // Prefix BSE: signals the quotes route to use Alpha Vantage instead of Finnhub
+    // NSE-listed stocks via NSE India official API (prices in ₹ — no conversion needed)
+    // Plain NSE symbols — signals the quotes route to use getNSEQuotes
     tickers: [
-      "RELIANCE.BSE",    // Reliance Industries
-      "TCS.BSE",         // Tata Consultancy Services
-      "HDFCBANK.BSE",    // HDFC Bank
-      "INFY.BSE",        // Infosys
+      "RELIANCE",    // Reliance Industries
+      "TCS",         // Tata Consultancy Services
+      "HDFCBANK",    // HDFC Bank
+      "INFY",        // Infosys
+      "ICICIBANK",   // ICICI Bank
+      "WIPRO",       // Wipro
+      "BAJFINANCE",  // Bajaj Finance
+      "HINDUNILVR",  // Hindustan Unilever
     ],
-    indices: [], // INDA/INDY are USD ETFs — not meaningful alongside ₹ BSE quotes
+    indices: [], // INDA/INDY are USD ETFs — not meaningful alongside ₹ NSE quotes
     finnhubCategory: "general",
   },
   CRYPTO: {
