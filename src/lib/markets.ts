@@ -4,28 +4,36 @@ export const MARKETS: Record<MarketKey, MarketDef> = {
   US: {
     label: "US Markets",
     icon: "🇺🇸",
-    tickers: ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD", "NFLX", "CRM"],
-    indices: ["SPY", "QQQ", "DIA"], // ETFs as index proxies (Finnhub supports these)
+    // Magnificent 7 + key large-caps
+    tickers: ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "AMD", "JPM", "V"],
+    indices: ["SPY", "QQQ", "DIA"],
     finnhubCategory: "general",
   },
   EU: {
     label: "European",
     icon: "🇪🇺",
-    tickers: ["SAP", "ASML", "SIE.DE", "ADS.DE", "OR.PA", "NVO", "SHEL", "AZN"],
+    // Major European blue-chips — all NYSE/NASDAQ listed (Finnhub free tier compatible)
+    // ASML=Netherlands, NVO=Denmark, SAP=Germany, AZN=UK, SHEL=UK,
+    // ARM=UK, SNY=France(Sanofi), BNTX=Germany, NXPI=Netherlands, VOD=UK
+    tickers: ["ASML", "NVO", "SAP", "AZN", "SHEL", "ARM", "SNY", "BNTX", "NXPI", "VOD"],
     indices: ["EWG", "EWU", "VGK"],
     finnhubCategory: "general",
   },
   INDIA: {
     label: "India",
     icon: "🇮🇳",
-    tickers: ["RELIANCE.NS", "TCS.NS", "INFY", "HDB", "IBN", "WIT", "TTM", "RDY"],
+    // Indian companies listed as ADRs on NYSE/NASDAQ (Finnhub free tier compatible)
+    // INFY=Infosys, WIT=Wipro, HDB=HDFC Bank, IBN=ICICI Bank,
+    // TTM=Tata Motors, RDY=Dr.Reddy's, VEDL=Vedanta, AUKF? → use BSAC? No
+    tickers: ["INFY", "HDB", "IBN", "WIT", "TTM", "RDY", "VEDL", "MMYT"],
     indices: ["INDA", "INDY"],
     finnhubCategory: "general",
   },
   CRYPTO: {
     label: "Crypto",
     icon: "₿",
-    tickers: ["bitcoin", "ethereum", "solana", "cardano", "ripple", "polkadot", "avalanche-2", "chainlink"],
+    // Top 8 by market cap (CoinGecko IDs)
+    tickers: ["bitcoin", "ethereum", "solana", "ripple", "binancecoin", "cardano", "avalanche-2", "chainlink"],
     indices: [],
     finnhubCategory: "crypto",
   },

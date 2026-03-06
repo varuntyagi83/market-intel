@@ -30,10 +30,10 @@ interface Props {
 }
 
 const QUICK_PICKS: Record<MarketKey, string[]> = {
-  US: ["AAPL", "NVDA", "MSFT", "TSLA", "AMZN"],
-  EU: ["ASML", "SAP", "NVO", "AZN", "SHEL"],
-  INDIA: ["INFY", "WIT", "HDB", "IBN", "TTM"],
-  CRYPTO: ["BTC", "ETH", "SOL", "ADA", "XRP"],
+  US:     ["AAPL", "NVDA", "MSFT", "GOOGL", "TSLA"],
+  EU:     ["ASML", "NVO", "SAP", "AZN", "ARM"],
+  INDIA:  ["INFY", "HDB", "IBN", "WIT", "TTM"],
+  CRYPTO: ["BTC", "ETH", "SOL", "XRP", "BNB"],
 };
 
 export default function DeepDivePanel({ market, quotes }: Props) {
