@@ -5,6 +5,7 @@ import { EnrichedCandidate, Strategy } from "@/lib/fmp";
 import { MarketKey } from "@/lib/types";
 import MarkdownRenderer from "./MarkdownRenderer";
 import LoadingDots from "./LoadingDots";
+import StockModal from "./StockModal";
 
 // ── Strategy presets ──────────────────────────────────────
 
@@ -65,7 +66,7 @@ function scoreBadge(s: number): string {
 
 // ── Candidate metric card ─────────────────────────────────
 
-function CandidateCard({ c, rank }: { c: EnrichedCandidate; rank: number }) {
+function CandidateCard({ c, rank, onClick }: { c: EnrichedCandidate; rank: number; onClick: () => void }) {
   const m = c.metrics;
   const r = c.ratios;
   const g = c.growth;
@@ -88,7 +89,10 @@ function CandidateCard({ c, rank }: { c: EnrichedCandidate; rank: number }) {
   ];
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-3 flex flex-col gap-2">
+    <div
+      className="bg-surface border border-border rounded-lg p-3 flex flex-col gap-2 cursor-pointer hover:border-accent/50 transition-colors"
+      onClick={onClick}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -107,7 +111,9 @@ function CandidateCard({ c, rank }: { c: EnrichedCandidate; rank: number }) {
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <div className="text-[#e0e0f0] text-sm font-bold">${c.price.toFixed(2)}</div>
+          <div className="text-[#e0e0f0] text-sm font-bold">
+            {c.price > 0 ? `$${c.price.toFixed(2)}` : "—"}
+          </div>
           <div className="text-muted text-[9px]">β {c.beta?.toFixed(2) ?? "—"}</div>
         </div>
       </div>
@@ -149,6 +155,7 @@ export default function StockScout({ market }: Props) {
   const [analysis, setAnalysis]     = useState("");
   const [loading, setLoading]       = useState(false);
   const [abortCtrl, setAbortCtrl]   = useState<AbortController | null>(null);
+  const [selected, setSelected]     = useState<EnrichedCandidate | null>(null);
 
   // Reset when market changes
   useEffect(() => {
@@ -331,7 +338,7 @@ export default function StockScout({ market }: Props) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             {candidates.map((c, i) => (
-              <CandidateCard key={c.symbol} c={c} rank={i + 1} />
+              <CandidateCard key={c.symbol} c={c} rank={i + 1} onClick={() => setSelected(c)} />
             ))}
           </div>
         </div>
@@ -357,6 +364,11 @@ export default function StockScout({ market }: Props) {
           </div>
         </div>
       ) : null}
+
+      {/* Stock detail modal */}
+      {selected && (
+        <StockModal candidate={selected} onClose={() => setSelected(null)} />
+      )}
     </div>
   );
 }

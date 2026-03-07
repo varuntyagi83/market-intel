@@ -1,13 +1,12 @@
 // ═══════════════════════════════════════════════════════════
-// Unified fundamentals adapter
+// Unified fundamentals adapter — Finnhub for all markets
 //
-// • US stocks    → Twelve Data  (800 calls/day, 1 call/stock)
-// • India (NSE)  → Twelve Data  (symbol:NSE format)
-// • EU ADRs      → Finnhub      (60 calls/min, 2 calls/stock)
+// All stocks (US, EU ADRs, India ADRs) are US-listed on NYSE/NASDAQ.
+// Finnhub free tier: 60 calls/min (no daily cap), 2 calls/stock.
 //
-// Routing key: entry.exchange === "NSE"  → Twelve Data :NSE
-//              entry.country  === "US"   → Twelve Data plain
-//              else (EU ADRs)            → Finnhub
+// Field name corrections vs Finnhub docs:
+//   netProfitMarginTTM  (not netMarginTTM)
+//   longTermDebt/equityAnnual  (not debtToEquityAnnual)
 // ═══════════════════════════════════════════════════════════
 
 import {
@@ -18,6 +17,9 @@ import {
   Strategy,
   UniverseEntry,
   scoreCandidate,
+  getKeyMetrics,
+  getRatiosTTM,
+  getFinancialGrowth,
 } from "./fmp";
 
 // ── Twelve Data ───────────────────────────────────────────
@@ -159,20 +161,20 @@ const FH_BASE = "https://finnhub.io/api/v1";
 const FH_KEY  = process.env.FINNHUB_API_KEY || "";
 
 interface FHMetric {
-  peNormalizedAnnual?:      number;
-  psTTM?:                   number;
-  pbAnnual?:                number;
-  roeTTM?:                  number;  // percentage (e.g. 52.14 = 52.14%)
-  grossMarginTTM?:          number;  // percentage
-  netMarginTTM?:            number;  // percentage
-  operatingMarginTTM?:      number;  // percentage
-  debtToEquityAnnual?:      number;  // ratio
-  currentDividendYieldTTM?: number;  // percentage
-  revenueGrowthTTMYoy?:     number;  // percentage
-  epsGrowthTTMYoy?:         number;  // percentage
-  marketCapitalization?:    number;  // millions USD
-  beta?:                    number;
-  "currentEv/freeCashFlowTTM"?: number;
+  peNormalizedAnnual?:           number;
+  psTTM?:                        number;
+  pbAnnual?:                     number;
+  roeTTM?:                       number;  // percentage
+  grossMarginTTM?:               number;  // percentage
+  netProfitMarginTTM?:           number;  // percentage (correct field name)
+  operatingMarginTTM?:           number;  // percentage
+  "longTermDebt/equityAnnual"?:  number;  // ratio (correct field name)
+  currentDividendYieldTTM?:      number;  // percentage
+  revenueGrowthTTMYoy?:          number;  // percentage
+  epsGrowthTTMYoy?:              number;  // percentage
+  marketCapitalization?:         number;  // millions USD
+  beta?:                         number;
+  "currentEv/freeCashFlowTTM"?:  number;
 }
 
 interface FHMetricResponse { metric?: FHMetric }
@@ -230,9 +232,9 @@ async function buildFromFinnhub(
     priceToSalesRatioTTM:        fhm.psTTM ?? 0,
     priceToFreeCashFlowRatioTTM: 0,
     dividendYieldTTM:            pct(fhm.currentDividendYieldTTM),
-    debtToEquityRatioTTM:        fhm.debtToEquityAnnual ?? 0,
+    debtToEquityRatioTTM:        fhm["longTermDebt/equityAnnual"] ?? 0,
     grossProfitMarginTTM:        pct(fhm.grossMarginTTM),
-    netProfitMarginTTM:          pct(fhm.netMarginTTM),
+    netProfitMarginTTM:          pct(fhm.netProfitMarginTTM),
     operatingProfitMarginTTM:    pct(fhm.operatingMarginTTM),
     currentRatioTTM:             0,
   };
@@ -266,20 +268,59 @@ async function buildFromFinnhub(
   };
 }
 
+// ── FMP builder (US domestic stocks) ─────────────────────
+
+async function buildFromFMP(
+  entry: UniverseEntry,
+  strategy: Strategy
+): Promise<EnrichedCandidate | null> {
+  const [[metrics, ratios, growth], quoteRes] = await Promise.all([
+    Promise.all([
+      getKeyMetrics(entry.symbol),
+      getRatiosTTM(entry.symbol),
+      getFinancialGrowth(entry.symbol),
+    ]),
+    fhFetch<FHQuote>(`/quote?symbol=${entry.symbol}`),
+  ]);
+
+  if (!metrics || !ratios) return null;
+
+  const marketCap = metrics.marketCap ?? 0;
+  if (!marketCap) return null;
+
+  const emptyGrowth: FinancialGrowth = {
+    symbol: entry.symbol,
+    revenueGrowth: 0, grossProfitGrowth: 0, netIncomeGrowth: 0,
+    epsgrowth: 0, freeCashFlowGrowth: 0,
+  };
+
+  const signalScore = scoreCandidate(metrics, ratios, growth ?? emptyGrowth, strategy, marketCap);
+
+  return {
+    symbol:            entry.symbol,
+    companyName:       entry.name,
+    marketCap,
+    sector:            entry.sector,
+    industry:          entry.industry,
+    beta:              1,
+    price:             quoteRes?.c ?? 0,
+    volume:            0,
+    exchangeShortName: entry.exchange,
+    country:           entry.country,
+    metrics,
+    ratios,
+    growth:            growth ?? emptyGrowth,
+    signalScore,
+  };
+}
+
 // ── Public entry point (used by scout.ts) ─────────────────
 
 export async function getYahooEnrichedCandidate(
   entry: UniverseEntry,
   strategy: Strategy
 ): Promise<EnrichedCandidate | null> {
-  // India NSE stocks → Twelve Data with :NSE suffix
-  if (entry.exchange === "NSE") {
-    return buildFromTwelveData(entry, strategy, `${entry.symbol}:NSE`);
-  }
-  // EU ADRs (US-listed but non-US company) → Finnhub
-  if (entry.country !== "US") {
-    return buildFromFinnhub(entry, strategy);
-  }
-  // US domestic stocks → Twelve Data plain symbol
-  return buildFromTwelveData(entry, strategy, entry.symbol);
+  // All markets → Finnhub (60 calls/min, no daily limit)
+  // US, EU ADRs, India ADRs are all US-listed so Finnhub supports them
+  return buildFromFinnhub(entry, strategy);
 }
