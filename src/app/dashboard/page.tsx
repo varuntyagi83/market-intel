@@ -10,6 +10,7 @@ import AdvisoryPanel from "@/components/AdvisoryPanel";
 import DeepDivePanel from "@/components/DeepDivePanel";
 import CustomQuery from "@/components/CustomQuery";
 import TechnicalPanel from "@/components/TechnicalPanel";
+import StockScout from "@/components/StockScout";
 import LoadingDots from "@/components/LoadingDots";
 
 const MARKET_KEYS: MarketKey[] = ["US", "EU", "INDIA", "CRYPTO"];
@@ -193,6 +194,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* ── Stock Scout (full width) ── */}
+        <div className="bg-surface/50 border border-border rounded-lg p-4">
+          <StockScout market={market} />
+        </div>
+
         {/* ── Custom Research (full width) ── */}
         <div className="bg-surface/50 border border-border rounded-lg p-4">
           <CustomQuery market={market} />
@@ -200,7 +206,7 @@ export default function DashboardPage() {
 
         {/* Footer */}
         <footer className="text-center text-muted text-[10px] py-4 border-t border-border">
-          Market Intelligence Agent · Finnhub + CoinGecko + Alpha Vantage + Claude + GPT-4o ·{" "}
+          Market Intelligence Agent · Finnhub + CoinGecko + Alpha Vantage + FMP + Claude + GPT-4o ·{" "}
           <span className="text-accent/60">Auto-refreshes every 60s</span>
         </footer>
       </main>
